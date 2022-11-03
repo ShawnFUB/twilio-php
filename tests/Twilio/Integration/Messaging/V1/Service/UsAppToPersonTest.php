@@ -43,6 +43,48 @@ class UsAppToPersonTest extends HolodeckTestCase {
         ));
     }
 
+    public function testCreateRequestWithOptInParams(): void {
+        $this->holodeck->mock(new Response(500, ''));
+        $testOptInParams = [
+            'MessageFlow' => "Message Flow",
+            'OptInKeywords' => ['start', 'begin'],
+            'OptInMessage' => "Opt In Message",
+            'OptOutKeywords' => ['stop', 'quit'],
+            'OptOutMessage' => "Opt Out Message",
+            'HelpKeywords' => ['help', 'assistance'],
+            'HelpMessage' => "Help Message"
+        ];
+        try {
+            $this->twilio->messaging->v1->services("MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+                                        ->usAppToPerson->create("BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "description", ["message_samples"], "us_app_to_person_usecase", True, True,
+                                        $testOptInParams);
+        } catch (DeserializeException $e) {}
+          catch (TwilioException $e) {}
+
+        $values = [
+            'BrandRegistrationSid' => "BNXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            'Description' => "description",
+            'MessageSamples' => Serialize::map(["message_samples"], function($e) { return $e; }),
+            'UsAppToPersonUsecase' => "us_app_to_person_usecase",
+            'HasEmbeddedLinks' => Serialize::booleanToString(True),
+            'HasEmbeddedPhone' => Serialize::booleanToString(True),
+            'MessageFlow' => $testOptInParams['MessageFlow'],
+            'OptInKeywords' => Serialize::map($testOptInParams['OptInKeywords'], function($e) { return $e; }),
+            'OptInMessage' => $testOptInParams['OptInMessage'],
+            'OptOutKeywords' => Serialize::map($testOptInParams['OptOutKeywords'], function($e) { return $e; }),
+            'OptOutMessage' => $testOptInParams['OptOutMessage'],
+            'HelpKeywords' => Serialize::map($testOptInParams['HelpKeywords'], function($e) { return $e; }),
+            'HelpMessage' => $testOptInParams['HelpMessage'],
+        ];
+
+        $this->assertRequest(new Request(
+            'post',
+            'https://messaging.twilio.com/v1/Services/MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/Compliance/Usa2p',
+            null,
+            $values
+        ));
+    }
+
     public function testCreateResponse(): void {
         $this->holodeck->mock(new Response(
             201,

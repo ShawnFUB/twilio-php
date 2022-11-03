@@ -47,18 +47,58 @@ class UsAppToPersonList extends ListResource {
      *                               messages that contain links
      * @param bool $hasEmbeddedPhone Indicates that this SMS campaign will send
      *                               messages that contain phone numbers
+     * @param array $optInParams Information about opt-in consent from message
+     *                               recipients and automated SMS keywords.
+     *     - 'MessageFlow' _string_: How recipients consent to receive SMS
+     *                               communications.
+     *     - 'OptInKeywords' _array_: Keywords used to opt in to SMS communication.
+     *     - 'OptInMessage' _string_: Message sent upon opt in.
+     *     - 'OptOutKeywords' _array_: Keywords used to opt out from SMS communication.
+     *     - 'OptOutMessage' _string_: Message sent upon opt out.
+     *     - 'HelpKeywords' _array_: Keywords used to get help with SMS communication.
+     *     - 'HelpMessage' _string_: Message sent when help is requested.
+     * 
      * @return UsAppToPersonInstance Created UsAppToPersonInstance
      * @throws TwilioException When an HTTP error occurs.
      */
-    public function create(string $brandRegistrationSid, string $description, array $messageSamples, string $usAppToPersonUsecase, bool $hasEmbeddedLinks, bool $hasEmbeddedPhone): UsAppToPersonInstance {
-        $data = Values::of([
+    public function create(string $brandRegistrationSid, string $description, array $messageSamples, string $usAppToPersonUsecase,
+        bool $hasEmbeddedLinks, bool $hasEmbeddedPhone, array $optInParams = null): UsAppToPersonInstance {
+        $dataValues = [
             'BrandRegistrationSid' => $brandRegistrationSid,
             'Description' => $description,
             'MessageSamples' => Serialize::map($messageSamples, function($e) { return $e; }),
             'UsAppToPersonUsecase' => $usAppToPersonUsecase,
             'HasEmbeddedLinks' => Serialize::booleanToString($hasEmbeddedLinks),
-            'HasEmbeddedPhone' => Serialize::booleanToString($hasEmbeddedPhone),
-        ]);
+            'HasEmbeddedPhone' => Serialize::booleanToString($hasEmbeddedPhone)
+        ];
+        if ($optInParams){
+            if ($optInParams['MessageFlow']) {
+                $dataValues['MessageFlow'] = $optInParams['MessageFlow'];
+            }
+            if ($optInParams['OptInKeywords']) {
+                $dataValues['OptInKeywords'] = Serialize::map($optInParams['OptInKeywords'],
+                    function($e) { return $e; });
+            }
+            if ($optInParams['OptInMessage']) {
+                $dataValues['OptInMessage'] = $optInParams['OptInMessage'];
+            }
+            if ($optInParams['OptOutKeywords']) {
+                $dataValues['OptOutKeywords'] = Serialize::map($optInParams['OptOutKeywords'],
+                    function($e) { return $e; });
+            }
+            if ($optInParams['OptOutMessage']) {
+                $dataValues['OptOutMessage'] = $optInParams['OptOutMessage'];
+            }
+            if ($optInParams['HelpKeywords']) {
+                $dataValues['HelpKeywords'] = Serialize::map($optInParams['HelpKeywords'],
+                    function($e) { return $e; });
+            }
+            if ($optInParams['HelpMessage']) {
+                $dataValues['HelpMessage'] = $optInParams['HelpMessage'];
+            }
+        }
+
+        $data = Values::of($dataValues);
 
         $payload = $this->version->create('POST', $this->uri, [], $data);
 
